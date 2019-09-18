@@ -5,10 +5,7 @@ class NaiveBayesianClassifer:
 
     def __init__(self):
         super().__init__()
-        (self.x_train, self.y_train), (self.x_test, self.y_test) = self.loadData()
-        self.mean=self.getMean(self.x_train)
-        self.std=self.getStd(self.x_train)
-        self.y= np.count_nonzero(self.y_train==1)/self.y_train.size
+
 
     def loadData(self):
         testSet = np.genfromtxt("./data/test.csv", delimiter=",")
@@ -24,6 +21,7 @@ class NaiveBayesianClassifer:
         if len(shape) == 1:
             result = np.ones(1)
         else:
+            print(shape)
             result = np.ones(shape[len(shape) - 1])
 
         block = 1 if len(shape) == 1 else shape[len(shape) - 1]
@@ -60,4 +58,3 @@ class NaiveBayesianClassifer:
 
 
 nbc = NaiveBayesianClassifer()
-print(nbc.y)
