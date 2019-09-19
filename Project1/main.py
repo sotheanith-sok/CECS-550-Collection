@@ -21,7 +21,7 @@ class NaiveBayesianClassifer:
         self.meanPY = self.getMean(self.train[self.train[:, numFeatures] == 1])[:numFeatures]
         self.varPY = self.getVar(self.train[self.train[:, numFeatures] == 1])[:numFeatures]
 
-        #Calculate means and variance with respect to y=2
+        #Calculate means and variance with respect to y=0
         self.meanPNotY = self.getMean(self.train[self.train[:, numFeatures] == 0])[:numFeatures]
         self.varPNotY = self.getVar(self.train[self.train[:, numFeatures] == 0])[:numFeatures]
 
