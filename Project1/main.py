@@ -1,60 +1,130 @@
 import numpy as np
+from sklearn.naive_bayes import GaussianNB
 
 
 class NaiveBayesianClassifer:
-
     def __init__(self):
         super().__init__()
 
+        #Load data
+        self.train, self.test = self.loadData()
 
+        #Dimension of X
+        numFeatures = 8 
+
+        #Calculate universal means, variances, and prior probability
+        self.mean = self.getMean(self.train)[:numFeatures]
+        self.var = self.getVar(self.train)[:numFeatures]
+        self.pY = [x[numFeatures] for x in self.train].count(1) / self.train.size
+
+        #Calculate means and variances with respect to y=1
+        self.meanPY = self.getMean(self.train[self.train[:, numFeatures] == 1])[:numFeatures]
+        self.varPY = self.getVar(self.train[self.train[:, numFeatures] == 1])[:numFeatures]
+
+        #Calculate means and variance with respect to y=2
+        self.meanPNotY = self.getMean(self.train[self.train[:, numFeatures] == 0])[:numFeatures]
+        self.varPNotY = self.getVar(self.train[self.train[:, numFeatures] == 0])[:numFeatures]
+
+        #Points to keep track of models performance
+        self.TN = 0
+        self.FN = 0
+        self.FP = 0
+        self.TP = 0
+
+        #Starting testing
+        for data in self.test:
+            x = data[:8] #Input x of some dimension
+            y = data[8] #Expected output
+
+            #Calculate the three likelihood: universal, with respect to y=1, and with respect to y=2
+            l1, l2, l3 = (
+                self.getLikelihood(x, self.mean, self.var),
+                self.getLikelihood(x, self.meanPY, self.varPY),
+                self.getLikelihood(x, self.meanPNotY, self.varPNotY),
+            )
+
+            #Classify the output.
+            predict = self.classify(l1, l2, l3, self.pY)
+
+            #Record the accuracy about predicted output vs expected output
+            if predict == 0 and y == 0:
+                self.TN = self.TN + 1
+
+            if predict == 1 and y == 0:
+                self.FP = self.FP + 1
+
+            if predict == 0 and y == 1:
+                self.FN = self.FN + 1
+
+            if predict == 1 and y == 1:
+                self.TP = self.TP + 1
+
+    '''
+    Load data from files
+    '''
     def loadData(self):
         testSet = np.genfromtxt("./data/test.csv", delimiter=",")
         trainSet = np.genfromtxt("./data/train.csv", delimiter=",")
-        x_train = trainSet[:, :8]
-        y_train = trainSet[:, 8]
-        x_test = testSet[:, :8]
-        y_test = testSet[:, 8]
-        return (x_train, y_train), (x_test, y_test)
+        return trainSet, testSet
 
+    '''
+    Generate means
+    '''
     def getMean(self, input):
         shape = np.shape(input)
-        if len(shape) == 1:
-            result = np.ones(1)
-        else:
-            print(shape)
-            result = np.ones(shape[len(shape) - 1])
+        result = np.ones(shape[len(shape) - 1])
+        block = shape[len(shape) - 1]
+        for i in range(block):
+            result[i] = np.mean(input.flatten()[i::block])
+        return result
 
-        block = 1 if len(shape) == 1 else shape[len(shape) - 1]
-
+    '''
+    Generate variances
+    '''
+    def getVar(self, input):
+        shape = np.shape(input)
+        result = np.ones(shape[len(shape) - 1])
+        block = shape[len(shape) - 1]
         for i in range(block):
             result[i] = np.var(input.flatten()[i::block])
-
         return result
 
-    def getStd(self, input):
-        shape = np.shape(input)
-        if len(shape) == 1:
-            result = np.ones(1)
-        else:
-            result = np.ones(shape[len(shape) - 1])
+    '''
+    Calculate likelihood using multivariate gaussian distribution 
+    '''
+    def getLikelihood(self, x, mean, variance):
 
-        block = 1 if len(shape) == 1 else shape[len(shape) - 1]
+        #Find Σ
+        sigma = np.identity(x.size) * variance
 
-        for i in range(block):
-            result[i] = np.std(input.flatten()[i::block])
+        #Calculate the coefficient: 
+        coefficient = 1 / (
+            ((2 * np.pi) ** (x.size / 2)) * ((np.linalg.det(sigma)) ** (1 / 2))
+        )
 
-        return result
+        #Calculate the exponent term
+        d = sigma ** (-1)
+        d[np.isinf(d)] = 0
+        a = np.atleast_2d(x - mean)  # 1 x n matrix
+        b = d  # n x n matrix
+        c = np.transpose(np.atleast_2d(x - mean))  # n x 1 matrix
 
+        #Return the final results
+        return (coefficient * np.exp((-1 / 2) * np.linalg.multi_dot([a, b, c])))[0][0]
 
-    def getLikelihood(self, input):
-        print(input)
-            
+    '''
+    Classify the result
+    '''
+    def classify(self, likelihood1, likelihood2, likelihood3, pY):
+        return 1 if likelihood2 * pY >= likelihood3 * (1 - pY) else 0
 
-    def classify(self):
-        print("Classifying...")
-
+    '''
+    Calcualte metrics
+    '''
     def calculateAccuracy(self):
-        print("Calculating accuracy...")
+        print((self.TP + self.TN) / (self.TN + self.TP + self.FN + self.FP))
 
 
-nbc = NaiveBayesianClassifer()
+
+ndb = NaiveBayesianClassifer()
+ndb.calculateAccuracy()
