@@ -162,7 +162,7 @@ error = 0
 sensitivity = 0
 specificity = 0
 
-for i in range(10000):
+for i in range(100):
 
     # Keep track of trials
     print("Trial ", i, " :")
@@ -177,6 +177,7 @@ for i in range(10000):
     specificity = specificity + gnb.specificity
     print("-------------------------------------")
 
+i=i+1
 print("Final results: ")
 print("Accuracy:", accuracy / i)
 print("Error:", error / i)
