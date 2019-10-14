@@ -24,7 +24,7 @@ class HMM (object):
         input[input == 'no'] = 2
         self.input = input.astype(np.int)
 
-        # Performe operations
+        # Perform operations
         self.loadData()
         self.createTransitionProbabilities()
         self.createEmissionProbabilities()

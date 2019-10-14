@@ -1,0 +1,50 @@
+Test #1)
+
+Testing Probability Of: 
+['no', 'yes', 'no', 'yes']
+
+Given Data Set:
+foggy,no
+foggy,no
+foggy,no
+
+Result:
+Traceback (most recent call last):
+  File "HMM.py", line 170, in <module>
+    HMM(np.array(['no', 'yes', 'no', 'yes']))
+  File "HMM.py", line 29, in __init__
+    self.createTransitionProbabilities()
+  File "HMM.py", line 64, in createTransitionProbabilities
+    self.a[initial, target] = self.a[initial, target]+1
+IndexError: index 3 is out of bounds for axis 0 with size 2
+
+Test #2)
+
+Testing Probability Of: 
+['no', 'yes', 'no', 'yes']
+
+Given Data Set:
+foggy,no
+foggy,no
+foggy,no
+sunny,no
+rainy,yes
+foggy,no
+sunny,no
+rainy,yes
+
+Result:
+Transition Probabilities:
+[[1.  0.  0.  0. ]
+ [0.  0.  1.  0. ]
+ [0.  0.  0.  1. ]
+ [0.  0.5 0.  0.5]]
+Emission Probabilities:
+[[1. 0. 0.]
+ [0. 0. 1.]
+ [0. 1. 0.]
+ [0. 0. 1.]]
+For input:  ['no' 'yes' 'no' 'yes']
+Probability of such evidents generated from this HMM:  0.0
+Most likely sequence of hidden states to generate the above evidents:
+['sunny' '0' '0' '0' '0']
