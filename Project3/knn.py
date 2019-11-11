@@ -1,6 +1,8 @@
 import pandas as pd
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.model_selection import train_test_split 
+from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import GridSearchCV
 pd.set_option('display.max_rows', None)
 
 
@@ -45,6 +47,18 @@ class KNN(object):
         predicted_result = self.model.predict(self.x_test)
         print(pd.DataFrame({"predicted_result":predicted_result, "expected_result":self.y_test}))
         print(accuracy)
+        # not sure how to alter the n_neighbor value through the parameter
+        parameters = [{}]
+        # also not sure about cross_val_score 'cv'
+        grid_search = GridSearchCV(estimator = self.model,
+                            param_grid = parameters,
+                            scoring = 'accuracy',
+                            cv = 10,
+                            n_jobs = -1)
+        grid_search - grid_search.fit(self.x_train, self.y_train)
+        accuracy = grid_search.best_score_
+        print(accuracy)
+        print(grid_search.best_params_)
         pass
 
 
