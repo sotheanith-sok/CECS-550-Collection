@@ -47,6 +47,10 @@ class KNN(object):
         predicted_result = self.model.predict(self.x_test)
         print(pd.DataFrame({"predicted_result":predicted_result, "expected_result":self.y_test}))
         print(accuracy)
+        # start of part 4
+        clf = svm.SVC(kernel='linear', C=1)
+        scores = cross_val_score(clf, self.data, cv=10)
+        # start of part 5
         # not sure how to alter the n_neighbor value through the parameter
         parameters = [{}]
         # also not sure about cross_val_score 'cv'
@@ -59,6 +63,7 @@ class KNN(object):
         accuracy = grid_search.best_score_
         print(accuracy)
         print(grid_search.best_params_)
+        # end of part 5
         pass
 
 
