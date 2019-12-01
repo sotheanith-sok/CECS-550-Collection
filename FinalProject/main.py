@@ -15,7 +15,6 @@ def run():
     plot_features_heatmap(data)
 
     data = features_selection(data)
-    print(data)
 
     pass
 
@@ -59,7 +58,7 @@ def process_data(data):
 
 
 def plot_features_distribution(data):
-    print("Graph features distributions vs classes...")
+    print("Plot features distributions...")
     fig, ax = plt.subplots(3, 3)
     fig.suptitle("Features Distributions")
 
@@ -126,6 +125,7 @@ def plot_features_distribution(data):
 
 
 def plot_features_heatmap(data):
+    print("Plot features heatmap...")
     plt.figure()
     corr = data.drop("Class", axis=1).corr()
     corr = corr.transpose()
@@ -137,6 +137,7 @@ def plot_features_heatmap(data):
 
 
 def features_selection(data):
+    print("Perform k best features selection...")
     X = data[data.columns[0:9]]
     y = data[data.columns[9:]]
 
@@ -147,6 +148,7 @@ def features_selection(data):
     return data[data.columns[np.append(features_indicies, 9)]]
 
 def pca(data):
+    print("Perform PCA...")
     pass
 
 run()
