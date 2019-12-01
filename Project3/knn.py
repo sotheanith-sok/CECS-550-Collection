@@ -7,7 +7,6 @@ import  matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
 pd.set_option("display.max_rows", None)
-pd.set_option("display.max_columns", None)
 
 
 class KNN(object):
@@ -37,14 +36,17 @@ class KNN(object):
         )
 
         # Drop row that contrains NA
-        data = data.dropna()
+        data.dropna(inplace=True)
 
-        # Remove invalid data. 0<= quality <=10
+        # # Remove invalid data. 0<= quality <=10
         data = data[((data["quality"] >= 0) & (data["quality"] <= 10))]
 
-        # Remove class that have data less than 2
+        # # Remove class that have data less than 2
         data = data[data.groupby("quality")["quality"].transform("count").ge(2)]
 
+        # # Drop duplication 
+        data = data.drop_duplicates()
+        print(data.shape[0])
         # Get feature sets
         x = data.drop(columns=["quality"])
 
@@ -144,5 +146,5 @@ m.run(
     int(sys.argv[1]) if len(sys.argv) > 1 else 5, #K
     int(sys.argv[2]) if len(sys.argv) > 2 else 5, #T
     int(sys.argv[3]) if len(sys.argv) > 3 else 1, #R1
-    int(sys.argv[4]) if len(sys.argv) > 4 else 50, #R2
+    int(sys.argv[4]) if len(sys.argv) > 4 else 100, #R2
 )
