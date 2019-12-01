@@ -2,24 +2,52 @@ import numpy as np
 import pandas as pd
 from sklearn import preprocessing
 from sklearn.feature_selection import SelectKBest, chi2, mutual_info_classif, f_classif
+from sklearn.decomposition import PCA
+from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.neural_network import MLPClassifier
 import matplotlib.pyplot as plt
 from matplotlib import colors
 import seaborn as sns
+import math
 
 
 def run():
+    """Run data processing pipeline
+    """
+
+    #Data loading
     data = load_data()
+
+    #Data preprocessing part 1
     data = process_data(data)
 
+    #Features analysis 
     plot_features_distribution(data)
     plot_features_heatmap(data)
 
+    #Feature engineering
     data = features_selection(data)
+    data = pca(data)
 
-    pass
+    #Features analysis 
+    plot_pca(data)
+    
+    #Data splitting
+    (X_train, y_train), (X_test, y_test) = split_data(data)
 
+    #KNN
+    knn(X_train, y_train, X_test, y_test)
+    
+    #ANN
+    ann(X_train, y_train, X_test, y_test)
+
+    plt.show()
 
 def load_data():
+    """Load data from files
+    """
+
     print("Loading data...")
     data = pd.read_csv(
         "data\\breast-cancer-wisconsin.data",
@@ -43,6 +71,9 @@ def load_data():
 
 
 def process_data(data):
+    """Processing data by replacing NaN with mean of features and scale values between min and max
+    """
+
     print("Processing data...")
     # Replace "?" with NaN
     data = data.replace("?", np.nan).astype(np.float64)
@@ -58,6 +89,8 @@ def process_data(data):
 
 
 def plot_features_distribution(data):
+    """Plot features distributions. Ignore the last column as it's the classfication.
+    """
     print("Plot features distributions...")
     fig, ax = plt.subplots(3, 3)
     fig.suptitle("Features Distributions")
@@ -121,10 +154,10 @@ def plot_features_distribution(data):
         kind=kind, bw_method=bw_method, title="Mitoses", legend=True, ax=ax[2, 2]
     )
 
-    pass
-
 
 def plot_features_heatmap(data):
+    """Plot features heatmap. Ignore the last column as it's the classfication.
+    """
     print("Plot features heatmap...")
     plt.figure()
     corr = data.drop("Class", axis=1).corr()
@@ -137,18 +170,135 @@ def plot_features_heatmap(data):
 
 
 def features_selection(data):
+    """Select 5 best features using "f_classif" algorithm
+    """
     print("Perform k best features selection...")
+
+    #Split data into features and classification
     X = data[data.columns[0:9]]
     y = data[data.columns[9:]]
 
+    #Create featuresSelector
     selector = SelectKBest(f_classif, k=5)
+
+    #Fit into data into featuresSelector
     selector.fit(X, y.values.ravel())
+
+    #Find  indicies of best features
     features_indicies = selector.get_support(indices=True)
 
     return data[data.columns[np.append(features_indicies, 9)]]
 
+
 def pca(data):
+    """Performe PCA to reduce dimensionaity of dataset. Output components are decided by Minka’s MLE 
+    """
     print("Perform PCA...")
-    pass
+
+    #Do PCA
+    pca = PCA(n_components="mle", svd_solver="auto")
+    result = pca.fit_transform(data.drop("Class", axis=1))
+
+    #Add columns name to dataframe
+    columns = []
+    for i in range(np.shape(result)[1]):
+        columns.append(("PCA " + str(i)))
+
+    df = pd.DataFrame(data=result, columns=columns)
+
+    #Add classifications to new features (PCA) dataframe
+    df["Class"] = data["Class"]
+
+    return df
+
+
+def plot_pca(data):
+    """Plot PCA compoenents distribution 
+    """
+    print("Plot PCA distributions...")
+    column_count = len(data.columns)
+
+    fig, ax = plt.subplots(column_count - 1, 1)
+
+    fig.suptitle("PCA Distributions")
+
+    kind = "kde"
+    bw_method = "scott"
+
+    for i in range(column_count - 1):
+        data.groupby("Class")[data.columns[i]].plot(
+            kind=kind, bw_method=bw_method, title=data.columns[i], legend=True, ax=ax[i]
+        )
+
+
+def split_data(data):
+    """Splitting data into training set and testing set
+    """
+    print("Splitting data into training set and testing set...")
+    X_train, X_test, y_train, y_test = train_test_split(
+        data.drop("Class", axis=1), data["Class"], test_size=0.25
+    )
+    return (X_train, y_train), (X_test, y_test)
+
+
+def knn(X_train, y_train, X_test, y_test):
+    """Use GridSearchCV with training set to find the best estimator. Then using the best estimator to score the testing set.
+    """
+    print("Using GridSearchCV to find the best knn estimator...")
+
+    #Create KNN estimator
+    estimator = KNeighborsClassifier(n_neighbors=1)
+
+    #Parameters to be search on
+    param_grid = {
+        "n_neighbors": range(1, 50, 1),
+        "weights": ["uniform", "distance"],
+        "algorithm": ["ball_tree", "kd_tree", "brute"],
+    }
+
+    #Start parameters searching
+    clf = GridSearchCV(estimator, param_grid, n_jobs=-1, cv=5, iid=False)
+    clf.fit(X_train, y_train)
+
+    #Retreive the best estimator
+    new_estimator = clf.best_estimator_
+
+    #Print results
+    print("Best KNN: ", new_estimator)
+    print("KNN's score: %.10f" % (new_estimator.score(X_test, y_test)))
+
+
+def ann(X_train, y_train, X_test, y_test):
+    """Use GridSearchCV with training set to find the best estimator. Then using the best estimator to score the testing set.
+    """
+    print("Using GridSearchCV to find the best ann estimator...")
+
+    #Create MLP estimator
+    estimator = MLPClassifier(solver="adam", activation="relu", max_iter=10000)
+
+    #Parameters to be search on
+    param_grid = {
+        "hidden_layer_sizes": [
+            (15),
+            (8, 7),
+            (5, 5, 5),
+            (4, 4, 4, 3),
+            (3, 3, 3, 3, 3),
+            (3, 2, 2, 2, 2, 2, 2),
+        ],
+        "alpha": [0.0001, 0.0005, 0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1.0],
+    }
+
+    #Start parameters searching
+    clf = GridSearchCV(estimator, param_grid, n_jobs=-1, cv=5, iid=False)
+    clf.fit(X_train, y_train)
+
+    #Retreive the best estimator
+    new_estimator = clf.best_estimator_
+
+    #Print results
+    print("Best ANN: ", new_estimator)
+    print("ANN's score: %.10f" % (new_estimator.score(X_test, y_test)))
+
 
 run()
