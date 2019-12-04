@@ -12,37 +12,39 @@ import seaborn as sns
 import math
 
 
-def run():
+def run(display_graph=False):
     """Run data processing pipeline
     """
 
-    #Data loading
+    # Data loading
     data = load_data()
 
-    #Data preprocessing part 1
+    # Data preprocessing part 1
     data = process_data(data)
 
-    #Features analysis 
+    # Features analysis
     plot_features_distribution(data)
     plot_features_heatmap(data)
 
-    #Feature engineering
+    # Feature engineering
     data = features_selection(data)
     data = pca(data)
 
-    #Features analysis 
+    # Features analysis
     plot_pca(data)
-    
-    #Data splitting
+
+    # Data splitting
     (X_train, y_train), (X_test, y_test) = split_data(data)
 
-    #KNN
+    # KNN
     knn(X_train, y_train, X_test, y_test)
-    
-    #ANN
+
+    # ANN
     ann(X_train, y_train, X_test, y_test)
 
-    plt.show()
+    if display_graph:
+        plt.show()
+
 
 def load_data():
     """Load data from files
@@ -174,17 +176,17 @@ def features_selection(data):
     """
     print("Perform k best features selection...")
 
-    #Split data into features and classification
+    # Split data into features and classification
     X = data[data.columns[0:9]]
     y = data[data.columns[9:]]
 
-    #Create featuresSelector
+    # Create featuresSelector
     selector = SelectKBest(f_classif, k=5)
 
-    #Fit into data into featuresSelector
+    # Fit into data into featuresSelector
     selector.fit(X, y.values.ravel())
 
-    #Find  indicies of best features
+    # Find  indicies of best features
     features_indicies = selector.get_support(indices=True)
 
     return data[data.columns[np.append(features_indicies, 9)]]
@@ -195,18 +197,18 @@ def pca(data):
     """
     print("Perform PCA...")
 
-    #Do PCA
+    # Do PCA
     pca = PCA(n_components="mle", svd_solver="auto")
     result = pca.fit_transform(data.drop("Class", axis=1))
 
-    #Add columns name to dataframe
+    # Add columns name to dataframe
     columns = []
     for i in range(np.shape(result)[1]):
         columns.append(("PCA " + str(i)))
 
     df = pd.DataFrame(data=result, columns=columns)
 
-    #Add classifications to new features (PCA) dataframe
+    # Add classifications to new features (PCA) dataframe
     df["Class"] = data["Class"]
 
     return df
@@ -246,24 +248,24 @@ def knn(X_train, y_train, X_test, y_test):
     """
     print("Using GridSearchCV to find the best knn estimator...")
 
-    #Create KNN estimator
+    # Create KNN estimator
     estimator = KNeighborsClassifier(n_neighbors=1)
 
-    #Parameters to be search on
+    # Parameters to be search on
     param_grid = {
         "n_neighbors": range(1, 50, 1),
         "weights": ["uniform", "distance"],
         "algorithm": ["ball_tree", "kd_tree", "brute"],
     }
 
-    #Start parameters searching
+    # Start parameters searching
     clf = GridSearchCV(estimator, param_grid, n_jobs=-1, cv=5, iid=False)
     clf.fit(X_train, y_train)
 
-    #Retreive the best estimator
+    # Retreive the best estimator
     new_estimator = clf.best_estimator_
 
-    #Print results
+    # Print results
     print("Best KNN: ", new_estimator)
     print("KNN's score: %.10f" % (new_estimator.score(X_test, y_test)))
 
@@ -273,30 +275,29 @@ def ann(X_train, y_train, X_test, y_test):
     """
     print("Using GridSearchCV to find the best ann estimator...")
 
-    #Create MLP estimator
+    # Create MLP estimator
     estimator = MLPClassifier(solver="adam", activation="relu", max_iter=10000)
 
-    #Parameters to be search on
+    # Parameters to be search on
     param_grid = {
         "hidden_layer_sizes": [
-            (15),
-            (8, 7),
-            (5, 5, 5),
-            (4, 4, 4, 3),
-            (3, 3, 3, 3, 3),
-            (3, 2, 2, 2, 2, 2, 2),
+            (100),
+            (50, 50),
+            (33, 33, 33),
+            (25, 25, 25, 25),
+            (20, 20, 20, 20, 20),
         ],
-        "alpha": [0.0001, 0.0005, 0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1.0],
+        "alpha": np.linspace(0.0001, 1.0, 20),
     }
 
-    #Start parameters searching
+    # Start parameters searching
     clf = GridSearchCV(estimator, param_grid, n_jobs=-1, cv=5, iid=False)
     clf.fit(X_train, y_train)
 
-    #Retreive the best estimator
+    # Retreive the best estimator
     new_estimator = clf.best_estimator_
 
-    #Print results
+    # Print results
     print("Best ANN: ", new_estimator)
     print("ANN's score: %.10f" % (new_estimator.score(X_test, y_test)))
 
