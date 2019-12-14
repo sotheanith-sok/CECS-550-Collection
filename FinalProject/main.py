@@ -10,11 +10,14 @@ import matplotlib.pyplot as plt
 from matplotlib import colors
 import seaborn as sns
 import math
+import time
 
 
 def run(display_graph=False):
     """Run data processing pipeline
     """
+    # starts timer
+    start_time = time.time()
 
     # Data loading
     data = load_data()
@@ -44,6 +47,9 @@ def run(display_graph=False):
 
     if display_graph:
         plt.show()
+    
+    # prints time
+    print("Time elapsed:  %s seconds" % (time.time() - start_time))
 
 
 def load_data():
@@ -77,6 +83,9 @@ def process_data(data):
     """
 
     print("Processing data...")
+    print("# of times '?' occured in the data: ")
+    missing = data.isin(['?']).sum()
+    print(missing)
     # Replace "?" with NaN
     data = data.replace("?", np.nan).astype(np.float64)
 
