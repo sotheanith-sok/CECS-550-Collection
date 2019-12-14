@@ -6,8 +6,10 @@ from sklearn.decomposition import PCA
 from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.neural_network import MLPClassifier
+from sklearn.manifold import TSNE
 import matplotlib.pyplot as plt
 from matplotlib import colors
+from matplotlib.lines import Line2D
 import seaborn as sns
 import math
 
@@ -21,6 +23,9 @@ def run(display_graph=False):
 
     # Data preprocessing part 1
     data = process_data(data)
+
+    # Visualize data
+    data_visualization(data)
 
     # Features analysis
     plot_features_distribution(data)
@@ -302,4 +307,62 @@ def ann(X_train, y_train, X_test, y_test):
     print("ANN's score: %.10f" % (new_estimator.score(X_test, y_test)))
 
 
-run()
+def data_visualization(data):
+    """Visualize features using t-SNE
+    """
+    print("Visualize features using t-SNE...")
+
+    # Generate datamap base on class
+    class_color = []
+    for i in data["Class"]:
+        if i == 1.0:
+            class_color.append(np.array([1.0, 0, 0, 1.0]))
+        else:
+            class_color.append(np.array([0.0, 135.0 / 255.0, 1.0, 1.0]))
+
+    # Drop class from dataset
+    data = data.drop(["Class"], axis=1)
+
+    # Use TSNE to estimate x and y for features set
+    tsne = TSNE(n_components=2, verbose=0, perplexity=100, n_iter=10000)
+    result = tsne.fit_transform(data)
+
+    # Set custom legends
+    legend_elements = [
+        Line2D(
+            [0],
+            [0],
+            marker="o",
+            color="w",
+            label="malignant",
+            markerfacecolor=np.array([1.0, 0, 0, 1.0]),
+            markersize=15,
+        ),
+        Line2D(
+            [0],
+            [0],
+            marker="o",
+            color="w",
+            label="benign",
+            markerfacecolor=np.array([0.0, 135.0 / 255.0, 1.0, 1.0]),
+            markersize=15,
+        ),
+    ]
+
+    # Plot results
+    df = pd.DataFrame()
+    df["tsne-x"] = result[:, 0]
+    df["tsne-y"] = result[:, 1]
+    ax = sns.scatterplot(
+        x="tsne-x",
+        y="tsne-y",
+        hue="tsne-y",
+        palette=sns.color_palette(class_color, df["tsne-y"].unique().shape[0]),
+        data=df,
+        alpha=1.0,
+        legend=False,
+    )
+    ax.set_title("Visualize Features Using T-SNE")
+    ax.legend(handles=legend_elements)
+
+run(True)
