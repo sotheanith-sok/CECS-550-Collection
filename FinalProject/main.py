@@ -74,6 +74,7 @@ def load_data():
             "Class",
         ],
     )
+    print("Labels: benign (2), malignant (4)")
     data = data.drop("Sample ID", axis=1)
     return data
 
