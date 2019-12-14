@@ -83,6 +83,8 @@ def process_data(data):
     """
 
     print("Processing data...")
+    dataInstanceCount = len(data.index)
+    print('{}{}'.format("Instances of data: ", dataInstanceCount))
     print("# of times '?' occured in the data: ")
     missing = data.isin(['?']).sum()
     print(missing)
