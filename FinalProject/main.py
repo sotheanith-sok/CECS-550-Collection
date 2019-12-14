@@ -12,11 +12,14 @@ from matplotlib import colors
 from matplotlib.lines import Line2D
 import seaborn as sns
 import math
+import time
 
 
 def run(display_graph=False):
     """Run data processing pipeline
     """
+    # starts timer
+    start_time = time.time()
 
     # Data loading
     data = load_data()
@@ -49,6 +52,9 @@ def run(display_graph=False):
 
     if display_graph:
         plt.show()
+    
+    # prints time
+    print("Time elapsed:  %s seconds" % round(((time.time() - start_time)), 0))
 
 
 def load_data():
@@ -73,6 +79,7 @@ def load_data():
             "Class",
         ],
     )
+    print("Labels: benign (2), malignant (4)")
     data = data.drop("Sample ID", axis=1)
     return data
 
@@ -82,6 +89,11 @@ def process_data(data):
     """
 
     print("Processing data...")
+    dataInstanceCount = len(data.index)
+    print('{}{}'.format("Instances of data: ", dataInstanceCount))
+    print("# of times '?' occured in the data: ")
+    missing = data.isin(['?']).sum()
+    print(missing)
     # Replace "?" with NaN
     data = data.replace("?", np.nan).astype(np.float64)
 
@@ -272,7 +284,10 @@ def knn(X_train, y_train, X_test, y_test):
 
     # Print results
     print("Best KNN: ", new_estimator)
-    print("KNN's score: %.10f" % (new_estimator.score(X_test, y_test)))
+    kNNScore = (new_estimator.score(X_test, y_test))
+    print("KNN's score: %.10f" % (kNNScore))
+    kNNmisclassified = round(((1 - kNNScore) * len(X_test.index)), 2)
+    print('{}{}'.format("Number of misclassified records from kNN: ", kNNmisclassified))
 
 
 def ann(X_train, y_train, X_test, y_test):
@@ -304,7 +319,10 @@ def ann(X_train, y_train, X_test, y_test):
 
     # Print results
     print("Best ANN: ", new_estimator)
-    print("ANN's score: %.10f" % (new_estimator.score(X_test, y_test)))
+    ANNScore = (new_estimator.score(X_test, y_test))
+    print("ANN's score: %.10f" % ANNScore)
+    ANNmisclassified = round(((1 - ANNScore) * len(X_test.index)), 2)
+    print('{}{}'.format("Number of misclassified records from ANN: ", ANNmisclassified))
 
 
 def data_visualization(data):
