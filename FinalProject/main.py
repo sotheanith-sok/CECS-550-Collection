@@ -49,7 +49,7 @@ def run(display_graph=False):
         plt.show()
     
     # prints time
-    print("Time elapsed:  %s seconds" % (time.time() - start_time))
+    print("Time elapsed:  %s seconds" % round(((time.time() - start_time)), 0))
 
 
 def load_data():
@@ -279,7 +279,10 @@ def knn(X_train, y_train, X_test, y_test):
 
     # Print results
     print("Best KNN: ", new_estimator)
-    print("KNN's score: %.10f" % (new_estimator.score(X_test, y_test)))
+    kNNScore = (new_estimator.score(X_test, y_test))
+    print("KNN's score: %.10f" % (kNNScore))
+    kNNmisclassified = round(((1 - kNNScore) * len(X_test.index)), 2)
+    print('{}{}'.format("Number of misclassified records from kNN: ", kNNmisclassified))
 
 
 def ann(X_train, y_train, X_test, y_test):
@@ -311,7 +314,10 @@ def ann(X_train, y_train, X_test, y_test):
 
     # Print results
     print("Best ANN: ", new_estimator)
-    print("ANN's score: %.10f" % (new_estimator.score(X_test, y_test)))
+    ANNScore = (new_estimator.score(X_test, y_test))
+    print("ANN's score: %.10f" % ANNScore)
+    ANNmisclassified = round(((1 - ANNScore) * len(X_test.index)), 2)
+    print('{}{}'.format("Number of misclassified records from ANN: ", ANNmisclassified))
 
 
 run()
