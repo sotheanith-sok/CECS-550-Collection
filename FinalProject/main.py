@@ -6,6 +6,7 @@ from sklearn.decomposition import PCA
 from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.neural_network import MLPClassifier
+from sklearn.metrics import classification_report
 from sklearn.manifold import TSNE
 import matplotlib.pyplot as plt
 from matplotlib import colors
@@ -50,11 +51,11 @@ def run(display_graph=False):
     # ANN
     ann(X_train, y_train, X_test, y_test)
 
-    if display_graph:
-        plt.show()
-    
     # prints time
     print("Time elapsed:  %s seconds" % round(((time.time() - start_time)), 0))
+
+    if display_graph:
+        plt.show()
 
 
 def load_data():
@@ -90,9 +91,9 @@ def process_data(data):
 
     print("Processing data...")
     dataInstanceCount = len(data.index)
-    print('{}{}'.format("Instances of data: ", dataInstanceCount))
+    print("{}{}".format("Instances of data: ", dataInstanceCount))
     print("# of times '?' occured in the data: ")
-    missing = data.isin(['?']).sum()
+    missing = data.isin(["?"]).sum()
     print(missing)
     # Replace "?" with NaN
     data = data.replace("?", np.nan).astype(np.float64)
@@ -284,10 +285,14 @@ def knn(X_train, y_train, X_test, y_test):
 
     # Print results
     print("Best KNN: ", new_estimator)
-    kNNScore = (new_estimator.score(X_test, y_test))
+    kNNScore = new_estimator.score(X_test, y_test)
+
+    target_names = ['Benign', 'Malignant']
+    print(classification_report(y_test, new_estimator.predict(X_test), target_names=target_names))
+
     print("KNN's score: %.10f" % (kNNScore))
     kNNmisclassified = round(((1 - kNNScore) * len(X_test.index)), 2)
-    print('{}{}'.format("Number of misclassified records from kNN: ", kNNmisclassified))
+    print("{}{}".format("Number of misclassified records from kNN: ", kNNmisclassified))
 
 
 def ann(X_train, y_train, X_test, y_test):
@@ -319,10 +324,14 @@ def ann(X_train, y_train, X_test, y_test):
 
     # Print results
     print("Best ANN: ", new_estimator)
-    ANNScore = (new_estimator.score(X_test, y_test))
+    ANNScore = new_estimator.score(X_test, y_test)
+
+    target_names = ['Benign', 'Malignant']
+    print(classification_report(y_test, new_estimator.predict(X_test), target_names=target_names))
+    
     print("ANN's score: %.10f" % ANNScore)
     ANNmisclassified = round(((1 - ANNScore) * len(X_test.index)), 2)
-    print('{}{}'.format("Number of misclassified records from ANN: ", ANNmisclassified))
+    print("{}{}".format("Number of misclassified records from ANN: ", ANNmisclassified))
 
 
 def data_visualization(data):
@@ -383,4 +392,5 @@ def data_visualization(data):
     ax.set_title("Visualize Features Using T-SNE")
     ax.legend(handles=legend_elements)
 
-run(True)
+
+run(False)
