@@ -9,7 +9,7 @@ A collection of assignments for the CECS 550 class.
  - [Matplotlib](https://matplotlib.org/)
  - [NumPy](https://numpy.org/)
 
-## Author
+## Authors
  - [Sotheanith Sok](https://github.com/sotheanith)
  - [Jesse Blacklock](https://github.com/jblacklock)
 
