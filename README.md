@@ -7,7 +7,7 @@
 
 
 <!-- Title -->
-<h1 align="center" style="border: none">
+<h1 align="center" width=300 style="border: none">
 CECS 550 Collection
 </h1>
 
